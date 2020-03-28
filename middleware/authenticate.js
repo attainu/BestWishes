@@ -7,7 +7,7 @@ module.exports=(req,res,next)=>{
    } 
    try{
     const verify=jwt.verify(auth,privatekey)
-    res.provider=verify
+    res.payload=verify // sending the payload info 
     next()
    }
    catch{

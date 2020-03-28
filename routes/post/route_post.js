@@ -1,9 +1,12 @@
 const post=require('../../controller/post_route/post')
 const express=require('express')
-const app=express()
+const authenticate=require('../../middleware/authenticate')
 const router=express.Router()
 router.post('/registeruser',post.registeruser)
+router.post('/loginuser',post.loginuser)
+router.post('/logoutuser',authenticate,post.logoutuser)
 router.post('/provider',post.registerprovider)
 router.post('/loginprovider',post.loginprovider)
-
+router.post('/addvenues',authenticate,post.venue)
+router.post('/logoutprovider',authenticate,post.logoutprovider)
 module.exports=router

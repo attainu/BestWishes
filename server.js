@@ -5,6 +5,7 @@ const get=require('./routes/get/route_get')
 require('./models/db')
 
 app.use(express.urlencoded({extended:false}))
+app.use(express.json())
 app.use(post)
 app.use(get)
 

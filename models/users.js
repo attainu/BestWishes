@@ -20,7 +20,19 @@ const usersSchema=new Schema(
         required: true,
         trim: true
       },
+      tokens: [{
+        token: {
+            type:
+            {
+                String,
+                required:true
+            }
+        }
+    }]
+
+
     },
+
         {timestamps:true}
     );
 

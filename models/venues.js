@@ -33,6 +33,10 @@ const venuesSchema = new Schema({
     capacity:{
         type:Number,
         required:true
+    },
+    venueimg:{
+        type:String,
+        required:false
     }
 })
 const Venues=mongoose.model('venues',venuesSchema)

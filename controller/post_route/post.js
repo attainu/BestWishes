@@ -4,8 +4,6 @@ const Venues = require('../../models/venues')
 const bcrypjs = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const privatekey = require('../../password')
-const multer=require('multer')
-const upload=multer({})
 
 
 
@@ -86,7 +84,7 @@ module.exports = {
         const validpass = await bcrypjs.compare(password, provider.password)
         if (!validpass) res.send("invalid email").status(403)
 
-        const token = jwt.sign({ _id: provider._id }, privatekey, { expiresIn: 60 * 10 })
+        const token = jwt.sign({ _id: provider._id }, privatekey,/* { expiresIn: 60 * 10 }*/)
         provider.tokens=provider.tokens.concat({token})
        // console.log(token)
       await provider.save()
@@ -110,10 +108,15 @@ module.exports = {
         }
 
     },
-    venue: async (req, res) => {
-        const id = res.provider._id
+    venue:async (req, res) => {
+        const venueimg=req.file.path
+        console.log("hrt",venueimg)
+        const id = res.payload._id
         const a = await Providers.findById({ _id: id })
-        const venues = new Venues({ ...req.body })
+       
+        const venues = new Venues({ ...req.body,venueimg})
+      
+        
         // now wiring the venues and providers
         venues.provider = id // in the venues schema we have provided the providers id
         a.venue_id.push(venues._id);// in  the provider schema we have given the venues id 

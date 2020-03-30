@@ -10,4 +10,6 @@ router.post('/provider',post.registerprovider)
 router.post('/loginprovider',post.loginprovider)
 router.post('/addvenues',authenticate,upload,post.venue)
 router.post('/logoutprovider',authenticate,post.logoutprovider)
+router.delete('/admin/removeuser',authenticate,post.admin_remove_user)
+router.delete('/admin/removeprovider',authenticate,post.admin_remove_provider)
 module.exports=router

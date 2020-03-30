@@ -1,6 +1,7 @@
 const Users = require('../../models/users')
 const Providers = require('../../models/providers')
 const Venues = require('../../models/venues')
+const Admin=require('../../models/admin')
 const bcrypjs = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const privatekey = require('../../password')
@@ -35,7 +36,7 @@ module.exports = {
         const validpass = await bcrypjs.compare(password, user.password)
         if (!validpass) res.send("invalid password").status(403)
 
-        const token = jwt.sign({ _id: user._id }, privatekey, { expiresIn: 60 * 10 })
+        const token = jwt.sign({ _id: user._id }, privatekey)
         user.tokens=user.tokens.concat({token})
         console.log(token)
       await user.save()
@@ -111,6 +112,7 @@ module.exports = {
     venue:async (req, res) => {
         const venueimg=req.file.path
         console.log("hrt",venueimg)
+        console.log(res.payload)
         const id = res.payload._id
         const a = await Providers.findById({ _id: id })
        
@@ -134,7 +136,47 @@ module.exports = {
             else res.status(200).send(doc)
         })
 
+    },
+    admin_remove_user:async(req,res)=>{
+            try {
+            
+                const payload_id = res.payload._id
+                const admin = await Users.findById({ _id: payload_id })
+                if (admin.Isadmin === true) {
+                    const del= req.header('id')
+                    let remove=await Users.findByIdAndDelete({_id:del})
+                    return res.status(200).json(remove)
+                
+                }
+                else{
+                    res.status(500).json("only for admin")
+                }
+            }
+            catch (error) {
+                res.status(400).json(error)
+            }     
+    },
+    admin_remove_provider:async(req,res)=>{
+        try {
+            
+            const payload_id = res.payload._id
+            const admin = await Users.findById({ _id: payload_id })
+            if (admin.Isadmin === true) {
+                const del= req.header('id')
+                let remove=await Providers.findByIdAndDelete({_id:del})
+                return res.status(200).json("sucessfully remove from website")
+            
+            }
+            else{
+                res.status(500).json("only for admin")
+            }
+        }
+        catch (error) {
+            res.status(400).json(error)
+        }     
     }
+   
+   
 
 
 }

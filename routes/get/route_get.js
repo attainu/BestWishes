@@ -7,4 +7,6 @@ router.get('/home',authenticate,(req,res)=>{
     
 })
 router.get('/dashboard',get.dashboard)
+router.get('/adminuser',authenticate,get.admin_user_dashboard)
+router.get('/adminprovider',authenticate,get.admin_provider_dashboard)
 module.exports=router

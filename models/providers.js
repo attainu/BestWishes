@@ -21,6 +21,10 @@ const providersSchema = new Schema({
         required: true,
         trim: true
     },
+    status:{
+        type:String,
+        default:"inactive"
+    },
     venue_id: [
         {
             type: Schema.Types.ObjectId,

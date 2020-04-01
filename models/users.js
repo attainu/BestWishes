@@ -20,6 +20,10 @@ const usersSchema = new Schema(
       required: true,
       trim: true
     },
+    status:{
+      type:String,
+      default:"inactive"
+    },
     tokens: [{
       token: {
         type:
@@ -37,31 +41,20 @@ const usersSchema = new Schema(
 
   { timestamps: true }
 );
-
-// usersSchema.statics.findByEmailAndPassword = function(email, password) {
-//     var usersObj = null;
-//     return new Promise(function(resolve, reject) {
-//       User.findOne({ email: email })
-//         .then(function(user) {
-//           if (!user) reject("Incorrect credentials");
-//           userObj = user;
-//           return bcrypt.compare(password, user.password);
-//         })
-//         .then(function(isMatched) {
-//           if (!isMatched) reject("Incorrect credentials");
-//           resolve(userObj);
-//         })
-//         .catch(function(err) {
-//           reject(err);
-//         });
-//     });
-//   };
-// usersSchema.statics.findByEmailAndPassword=(email,password)=>{
-//     const usersObj=null;
-//     return new Promise((resolve,reject)=>{
-
-//     })
-// }
+const bookingSchema = new Schema({
+  userid:{
+      type:String,
+      require:[true,"userid cannot be empty"]
+  },
+  productId:{
+      type:Schema.Types.ObjectId,ref:"venues",
+      required:[true,"productId cannot be empty"]
+  },
+  status:{
+      type:String,
+      default:"incomplete"
+  }
+})
 usersSchema.pre("save", function (next) { // A middleware use so that we can hash a password here only
   if (this.isModified("password")) // this is use ,so that we can do not hash twice
   {
@@ -80,5 +73,6 @@ usersSchema.pre("save", function (next) { // A middleware use so that we can has
     next()
   }
 })
+const Booking = mongoose.model("booking", bookingSchema)
 const Users = mongoose.model("users", usersSchema)
-module.exports = Users
+module.exports = {Users,Booking}

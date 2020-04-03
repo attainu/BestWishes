@@ -29,7 +29,7 @@ module.exports = {
                     from:"js903783@gmail.com",
                     to: req.body.email, 
                     subject: "Account activation link",
-                    html: "<h1>hello "+req.body.name+",here is you activation link</h1><br><a href='http://localhost:7000/activateClient/"+token+"'>Activate account</a>" // html body
+                    html: "<h1>hello "+req.body.name+",here is you activation link</h1><br><a href='http://localhost:7000/activateClient/"+token+">Activate account</a>" // html body
                 },(err,info)=>{
                     if(!err){return res.status(200).send(
                         {
@@ -45,49 +45,51 @@ module.exports = {
         })
     },
     forgotPass:(req,res)=>{
-        token = jwt.sign({data:req.body.email},'secret', { expiresIn: '1h' })
+        const token = jwt.sign({data:req.body.email},privatekey, { expiresIn: '1h' })
         transporter.sendMail({
             from:"js903783@gmail.com",
             to:req.body.email,
             subject:"Password reset link",
             html:"<h1>Click the link to reset you password</h><br>"+
-                "<a href='http://localhost:7000/reset/"+token+"'>Click here</a>"
+                "<a href='http://localhost:7000/reset/"+token+">Click here</a>"
         })
         res.send({message:"reset link sent to your email"})
     },
     forgotPassClient:(req,res)=>{
-        token = jwt.sign({data:req.body.email},'secret', { expiresIn: '1h' })
+        const token = jwt.sign({data:req.body.email},privatekey, { expiresIn: '1h' })
+        
         transporter.sendMail({
             from:"js903783@gmail.com",
             to:req.body.email,
             subject:"Password reset link",
             html:"<h1>Click the link to reset you password</h><br>"+
-                "<a href='http://localhost:7000/resetClient/"+token+"'>Click here</a>"
+                "<a href='http://localhost:7000/resetClient/"+token+">Click here</a>"
         })
         res.send({
             message:"reset link sent to your email",
-            link:"http://localhost:7000/resetClient/"+token+"'>Click here</a>"})
+            link:"http://localhost:7000/resetClient/"+token+">Click here</a>"})
     },
     // reset password is happening here for client with token varification
     resetTokenClient:(req,res)=>{
         try {
-            var decoded = jwt.verify(req.params.token, 'secret');
+            var decoded = jwt.verify(req.params.token, privatekey);
             Users.findOne({email:decoded.data})
             .then(data=>{
-            dataHash = bcrypjs.hashSync(req.body.password,10)
-            Users.updateOne({email:decoded.data},{$set:{password:dataHash}})
-            .then(()=>{res.status(202).send({message:"password reset succesfull"})})
-            .catch(err=>res.status(400).send({message:err}))
-        })
+                dataHash = bcrypjs.hashSync(req.body.password,10)
+                Users.updateOne({email:decoded.data},{$set:{password:dataHash}})
+                .then(()=>{res.status(202).send({message:"password reset succesfull"})})
+                .catch(err=>res.status(400).send({message:err}))
+            })
         } catch(err) {
             if(err.name =="TokenExpiredError")return res.send(400,{message:"invalid token"})
             return res.status(400).send({message:err})
-        }
+        } 
+            
     },
     // reset password is happening here for provider with token varification
     resetToken:(req,res)=>{
         try {
-            var decoded = jwt.verify(req.params.token, 'secret');
+            var decoded = jwt.verify(req.params.token, privatekey);
             Provider.findOne({email:decoded.data})
             .then(data=>{
             dataHash = bcrypt.hashSync(data.pass,10)
@@ -118,8 +120,8 @@ module.exports = {
         const token = jwt.sign({ _id: user._id }, privatekey)
         user.tokens=user.tokens.concat({token})
         console.log(token)
-      await user.save()
-            return res.status(200).send("login sucess")
+        await user.save()
+        return res.status(200).send({message:"login sucess"})
     },
     logoutuser:async (req,res)=>{
         try{

@@ -11,7 +11,7 @@ router.get('/adminuser',authenticate,get.admin_user_dashboard)
 router.get('/adminprovider',authenticate,get.admin_provider_dashboard)
 router.get("/activate/:token", get.activate)
 router.get("/activateClient/:token", get.activateClient)
-router.get("/resetClient",get.resetClient)
+router.get("/resetClient/:token",get.resetClient)
 router.get("/reset",get.reset)
 router.get("/order",authenticate,get.order)
 

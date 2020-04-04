@@ -294,20 +294,16 @@ module.exports = {
         if(req.body.email){
             if(req.body.pass){
                 Users.findOne({email:req.body.email})
-                .then(data=>{
-                    const somevar = bcrypjs.compare(req.body.pass, data.password)
-                    .then(some=>{
-                        if(some){
-                            return res.status(200).json({id:data.id,name:data.name})
-                        }else{
-                            return res.status(401).json({message:"wrong credentials"})
-                        }
-                    })
-                    
-                    
+                .then(async(data)=>{
+                    const somevar = await bcrypjs.compare(req.body.pass, data.password)
+                    if(somevar){
+                        return res.status(200).json({id:data.id,name:data.name})
+                    }else{
+                        res.status(401).json({message:"wrong credentials"})
+                    }
                 })
             }
-        }else{return res.status(401).send({message:"invalid credentials"})}
+        }else{res.status(401).send({message:"invalid credentials"})}
         
     },
     order2:(req,res)=>{

@@ -39,5 +39,15 @@ const venuesSchema = new Schema({
         required:false
     }
 })
+// venuesSchema.pre('remove', async function(next) {
+//     // 'this' is the client being removed. Provide callbacks here if you want
+//     // to be notified of the calls' result.
+//     console.log("pre",this._id)
+//   const done =await Venues.remove({_id:this._id})
+//   //console.log(done)
+//     next();
+// })
+
+venuesSchema.index({'$**':'text'})
 const Venues=mongoose.model('venues',venuesSchema)
 module.exports=Venues

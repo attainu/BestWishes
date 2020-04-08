@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const bcryptjs = require('bcryptjs')
 const Schema = mongoose.Schema
+const Venues=require('../models/venues')
 const jwt = require('jsonwebtoken')
 const privatekey = require('../password')
 
@@ -64,14 +65,14 @@ providersSchema.pre("save", function (next) { // A middleware use so that we can
         next()
     }
 })
-// providersSchema.methods.generatetoken = async function () {
-//     const providers=this
-//     const token = jwt.sign({ id: providers._id }, privatekey, { expiresIn: 60 * 30 })
-//     providers.tokens=providers.tokens.concat({token})
-//     await providers.save()
-//     return token
-// }
-
+providersSchema.pre('remove', async function(next) {
+    // 'this' is the client being removed. Provide callbacks here if you want
+    // to be notified of the calls' result.
+    console.log("pre",this._id)
+  const done =await Venues.remove({provider:this._id})
+  //console.log(done)
+    next();
+})
 const Providers = mongoose.model("providers", providersSchema)
 module.exports = Providers
 

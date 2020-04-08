@@ -1,20 +1,19 @@
 const {Users,Booking} = require('../../models/users')
 const Providers = require('../../models/providers')
 const Venues = require('../../models/venues')
-const Admin = require('../../models/admin')
 const privatekey = require('../../password')
 const jwt = require("jsonwebtoken")
+const AppError=require('../../utils/apperror')
+const catchAsync=fn=>{
+    return(req,res,next)=>{
+        fn(req,res,next).catch(next)
+    } 
+ }
 module.exports = {
-    dashboard: async (req, res) => {
-        try {
-            const response = await Venues.find({}).populate('provider', 'name')
+    dashboard: catchAsync(async (req, res,next) => {
+        const response = await Venues.find({}).populate('provider', 'name')
             return res.json(response)
-        }
-        catch (error) {
-            res.status(400).send(error)
-        }
-
-    },
+    }),
 
     //password reset route for client 
     resetClient:(req,res)=>{
@@ -31,10 +30,10 @@ module.exports = {
     activate:(req,res)=>{
         try {
             var decoded = jwt.verify(req.params.token, 'secret');
-            // Providers.updateOne({name:decoded.data[0],password:decoded.data[1]},{$set:{status:"active"}})
-            // .then(()=>{
-            //     res.send({message:"account activated"})
-            // })
+            Providers.updateOne({name:decoded.data[0],email:decoded.data[1]},{$set:{status:"active"}})
+            .then(()=>{
+                res.send({message:"account activated"})
+            })
         } catch(err) {
             res.send({message:"invalid link"})
         }
@@ -54,7 +53,9 @@ module.exports = {
     },
     admin_user_dashboard: async (req, res) => {
         try {
+            console.log(res.payload._id)
             const payload_id = res.payload._id
+            console.log(payload_id)
             const admin = await Users.findById({ _id: payload_id })
             if (admin.Isadmin === true) {
                 const response = await Users.find({})
@@ -72,12 +73,14 @@ module.exports = {
     admin_provider_dashboard: async (req, res) => {
         try {
             const payload_id = res.payload._id
-            const admin = await Users.findById({ _id: payload_id })
+            console.log(payload_id)
+            const admin = await Users.findById({_id:payload_id})
+
             if (admin.Isadmin === true) {
 
             const response = await Providers.find({}).populate({path:'venue_id'})
             return res.status(200).json(response)
-            }
+           }
             else{
                 res.status(500).json("only for admin")
             }

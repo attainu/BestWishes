@@ -17,13 +17,17 @@ module.exports = {
 
     //password reset route for client 
     resetClient:(req,res)=>{
-        if(req.params.token){return res.send({message:"post your password"})}
+        if(req.params.token){
+            res.status(200)
+            return res.json({message:"post your password"})}
         return res.send({message:"invalid link"})
     },
 
     //password reset route for provider 
     reset:(req,res)=>{
-        if(req.params.token){return res.send({message:"post your password"})}
+        if(req.params.token){
+            res.status(200)
+            return res.json({message:"post your password"})}
         return res.send({message:"invalid link"})
     },
     // account activation link for providers
@@ -74,7 +78,7 @@ module.exports = {
         try {
             const payload_id = res.payload._id
             console.log(payload_id)
-            const admin = await Users.findById({_id:payload_id})
+            const admin = await Providers.findById({_id:payload_id})
 
             if (admin.Isadmin === true) {
 
@@ -94,6 +98,9 @@ module.exports = {
         const something=jwt.verify(auth,privatekey)
         Booking.find({userid:something})
         .populate("productId")
-        .then(data=>res.send(data))
+        .then(data=>{
+            res.json(data)
+            return res.status(200)
+        })
     }
 }

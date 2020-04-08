@@ -4,7 +4,7 @@
   "description": "An api project for backend bestwishes",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node server.js"
   },
   "author": "yash sinha,boby tudu",
@@ -20,5 +20,8 @@
     "nodemon": "^2.0.2",
     "razorpay": "^2.0.6",
     "uuid": "^7.0.2"
+  },
+  "devDependencies": {
+    "jest": "^25.2.7"
   }
 }

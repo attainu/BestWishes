@@ -326,9 +326,7 @@ module.exports = {
                         })
                         newOrder.save().then(() => res.status(201).send(
                             {
-                                message: "order created successfully",
-                                process: "login to below link to chechout your product",
-                                link: "http://localhost:5000/login"
+                                message: "order created successfully"
                             }
                         ))
                     } else {

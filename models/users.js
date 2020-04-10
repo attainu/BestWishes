@@ -37,6 +37,10 @@ const usersSchema = new Schema(
      default:false,
       
     }
+    ,booking:[{
+            type:Schema.Types.ObjectId,
+            ref:"booking"
+      }],
   },
 
   { timestamps: true }

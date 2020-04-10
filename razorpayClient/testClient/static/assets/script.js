@@ -47,12 +47,12 @@ function loggedIn(){
 						'<div class="col">'+
 							'<h1 class="title">'+element.productId.venuename+'</h1>'+
 							'<p style="font-size: 25px;" class="body"><strong>Location: </strong>'+element.productId.location+'</p>'+
-							'<p style="font-size: 25px;"><strong>Price: </strong>'+element.productId.charges+'</p>'+
+							'<p style="font-size: 25px;"><strong>Price: </strong>'+parseInt((element.productId.charges).slice(1))*76+'</p>'+
 							'<p style="font-size: 25px;"><strong>Status: </strong>'+element.status+'</p>'+
 							'<form class="order__form" onsubmit="submitForm()">'+
 								'<input class="d-none" type="text" name="name" value="'+userName+'">'+
 								'<input class="d-none" type="text" name="someid" value="'+element._id+'">'+
-								'<input class="d-none" type="text" name="amount" value="'+element.productId.charges+'">'+
+								'<input class="d-none" type="text" name="amount" value="'+parseInt((element.productId.charges).slice(1))*76+'">'+
 								'<input class="d-none" type="text" name="currency" value="INR">'+
 								'<button class="btn btn-primary">Checkout</button>'+
 							'</form>'+

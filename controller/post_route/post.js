@@ -313,32 +313,48 @@ module.exports = {
 
         
     }),
-    createOrder: (req, res, next) => {    // leaving this for now
+    createOrder:async (req, res, next) => {    // leaving this for now
         const auth = req.header('auth-token')
         const something = jwt.verify(auth, privatekey)
         try {
-            Venues.find({ _id: something })
-                .then(data => {
-                    if (data) {
-                        newOrder = new Booking({
-                            userid: something,
-                            productId: req.body.productId
-                        })
-                        newOrder.save().then(() => res.status(201).send(
-                            {
-                                message: "order created successfully"
-                            }
-                        ))
-                    } else {
-                        res.send("failed")
-                    }
-                }).catch(err => {
-                    if (err.name == "CastError") {
-                        res.status(403).send({ message: "invalid productId" })
-                    } else {
-                        res.status(403).send(err)
-                    }
+            const venue = await Venues.findOne({_id:req.body.venueid})
+            if(venue){
+                const newOrder = new Booking({
+                    userid:something,
+                    productId:req.body.venueid
                 })
+                await newOrder.save()
+                const user = await Users.findOne({_id:something})
+                user.booking.push(newOrder._id)
+                await user.save()
+                return res.status(200).json({message:"order created successfully",user:user})
+            }else{
+                res.status(400).json({message:"invalid venueid"})
+            }
+
+
+            // Venues.find({ _id: something })
+            //     .then(data => {
+            //         if (data) {
+            //             newOrder = new Booking({
+            //                 userid: something,
+            //                 productId: req.body.productId
+            //             })
+            //             newOrder.save().then(() => res.status(201).send(
+            //                 {
+            //                     message: "order created successfully"
+            //                 }
+            //             ))
+            //         } else {
+            //             res.send("failed")
+            //         }
+            //     }).catch(err => {
+            //         if (err.name == "CastError") {
+            //             res.status(403).send({ message: "invalid productId" })
+            //         } else {
+            //             res.status(403).send(err)
+            //         }
+            //     })
         } catch (err) {
             res.send(err)
         }
@@ -375,10 +391,7 @@ module.exports = {
     order2: catchAsync(async (req, res, next) => {
         let data = await Booking.find({ userid: req.body.userid, status: "incomplete" })
             .populate("productId")
-        res.send(data)
-        // .then(data=>{
-        //     // console.log(data)
-        //     res.send(data)})
+            res.send(data)
     }),
     // routes for razorpay order creation
     chekcout: catchAsync(async (req, res, next) => {
@@ -406,12 +419,6 @@ module.exports = {
             name: user,
             amount: transaction.order_value
         });
-        // try {
-
-        // } catch (err) {
-        //     console.log(err);
-        //     res.status(500).send({ statusCode: 500, message: "Server Error" });
-        // }
     }),
     checkoutVerify: catchAsync(async (req, res, next) => {
         const {

@@ -136,7 +136,7 @@ module.exports = {
         const token = jwt.sign({ _id: user._id }, privatekey,{expiresIn:'1h'})
         user.tokens = user.tokens.concat({ token })
         await user.save()
-        return res.status(200).send({ message: "login sucess" })
+        return res.status(200).send({ message: "login sucess" ,token})
     }),
 
     logoutuser: catchAsync(async (req, res) => {
@@ -204,9 +204,8 @@ module.exports = {
 
         const token = jwt.sign({ _id: provider._id }, privatekey,{expiresIn:'1h'})
         provider.tokens = provider.tokens.concat({ token })
-        console.log(token)
         await provider.save()
-        return res.status(200).send({ message: "login sucess" })
+        return res.status(200).send({ message: "login sucess",token })
     }),
     logoutprovider: catchAsync(async (req, res, next) => {
         const id = res.payload._id
@@ -246,70 +245,101 @@ module.exports = {
     })
     },
     provider_update_venue: catchAsync(async (req, res, next) => {
-        const providerid = res.payload._id
-        console.log(providerid)
-        let response = await Providers.findById({ _id: providerid })
-        console.log(response)
-        if (response) {
-            let charges = req.body.charges
-            let capacity = req.body.capacity
-            let id = req.query.id
-            Venues.updateMany(
-                { _id: id }, { $set: { capacity: capacity, charges: charges } }).then(function (doc) {
-                    res.status(200).send("update sucess")
-                })
-
-        }
-        else return next(new AppError("not found Provider", 401))
+        const  id = req.query.id
+        const book = await Booking.findOne({productId:id})
+        if(!book){
+            const providerid = res.payload._id
+            let response = await Providers.findById({ _id: providerid })
+            if (response) {
+                const {charges, capacity} = {...req.body}
+                if(charges && capacity){
+                    let charges = req.body.charges
+                    let capacity = req.body.capacity
+                    Venues.updateMany(
+                        { _id: id }, { $set: { capacity: capacity, charges: charges } }).then(function (doc) {
+                            return res.status(200).send({message:"update sucess"})
+                        })
+                }else{return res.send({message:"all field required"})}
+            }else return next(new AppError("not found Provider", 401))
+        }else{return res.status(400).json({message:"venue still engaged"})}
     }),
     provider_delete_venue: catchAsync(async (req, res, next) => {
         const providerid = res.payload._id
        // const response = await Providers.findById({ _id: providerid })
         //console.log("entering the venues")
         //if (response) {
-            let id = req.query.id
-        Providers.findByIdAndUpdate(providerid, 
-                { $pull: { venue_id: {$in:[id]} } }, 
-                        function (err, doc) {
-                        if (!err) {
-                            Venues.deleteOne({_id:id},function(err,doc){
-                                if(err)console.log(err)
-                               else res.send({message:"sucessfully"})
-                            })
-                        } else {
-                            return next(new AppError("Provider not found"))
-                        }
-                    })
-        // }
-        // else return next(new AppError("could not found out the provider",404))
+
+        const  id = req.query.id
+        const book = await Booking.find({productId:id})
+        if(!book){
+            Providers.findByIdAndUpdate(providerid, 
+            { $pull: { venue_id: {$in:[id]} } }, 
+                    function (err, doc) {
+                    if (!err) {
+                        Venues.deleteOne({_id:id},function(err,doc){
+                            if(err)console.log(err)
+                        else res.send({message:"sucessfully"})
+                        })
+                    } else {
+                        return next(new AppError("Provider not found"))
+                    }
+                })
+        }else{
+            res.status(400).json({message:"venue still engaged"})
+        }
     }),
     admin_remove_user: catchAsync(async (req, res, next) => {
         const payload_id = res.payload._id
         const admin = await Users.findById({ _id: payload_id })
         if (admin && admin.Isadmin === true) {
             const del = req.params.id
-            let remove = await Users.findByIdAndDelete({ _id: del })
-            if(remove){
-                return res.status(200).json("sucessfully remove")
-            }
-            else return next(new AppError("could not found the User"))
-        }
-        else return next(new AppError("only for admin", 402))
+            const book = await Booking.findOne({userid:del})
+            if(!book){
+                let remove = await Users.findByIdAndDelete({ _id: del })
+                if(remove){
+                    return res.status(200).json("sucessfully remove")
+                }else return next(new AppError("could not found the User"))
+            }else return res.status(400).json({message:"user still engaged"})
+        }else return next(new AppError("only for admin", 402))
     }),
     admin_remove_provider: catchAsync(async (req, res, next) => {
         const payload_id = res.payload._id
         const admin = await Users.findById({ _id: payload_id })
         if (admin && admin.Isadmin === true) {
             const del = req.params.id
-             Providers.findById({ _id: del },function(err,doc){
-                 if(err)return next(new AppError("could not found the provider"))
-               else { 
-                   doc.remove()
-                  return res.status(200).json("sucessfully remove")
-               }
-             })
-        }
-        else return next(new AppError("only for admin", 402))
+            const book = await Venues.find({provider:del})
+            for(i in book){
+                // yahan par book[i] venue ki id hai
+                // yahan par book[i] venue ki id hai
+                // yahan par book[i] venue ki id hai
+                // yahan par book[i] venue ki id hai
+
+
+                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
+                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
+                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
+                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
+                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
+                const book2 = await Booking.findOne({productId:book[i].id})
+                console.log(book2)
+                if(!book2){
+                    return res.send("found")
+
+                    // below line is regular delete function
+                //      Providers.findById({ _id: del },function(err,doc){
+                //     if(err)return next(new AppError("could not found the provider"))
+                //     else { 
+                //         doc.remove()
+                //         return res.status(200).json("sucessfully remove")
+                //     }
+                //  })
+                }else{
+                    console.log("some venues are still engaged")
+                }
+            }
+            return res.send("some venues are still engaged")
+            
+        }else return next(new AppError("only for admin", 402))
 
         
     }),
@@ -331,30 +361,6 @@ module.exports = {
             }else{
                 res.status(400).json({message:"invalid venueid"})
             }
-
-
-            // Venues.find({ _id: something })
-            //     .then(data => {
-            //         if (data) {
-            //             newOrder = new Booking({
-            //                 userid: something,
-            //                 productId: req.body.productId
-            //             })
-            //             newOrder.save().then(() => res.status(201).send(
-            //                 {
-            //                     message: "order created successfully"
-            //                 }
-            //             ))
-            //         } else {
-            //             res.send("failed")
-            //         }
-            //     }).catch(err => {
-            //         if (err.name == "CastError") {
-            //             res.status(403).send({ message: "invalid productId" })
-            //         } else {
-            //             res.status(403).send(err)
-            //         }
-            //     })
         } catch (err) {
             res.send(err)
         }
@@ -375,18 +381,6 @@ module.exports = {
             }
         }
         else return next(new AppError("invalid credential", 401))
-        // else{res.status(401).send({message:"invalid credentials"})}
-        // .then(async(data)=>{
-        //     const somevar = await bcrypjs.compare(req.body.pass, data.password)
-        //     if(somevar){
-        //         return res.status(200).json({id:data.id,name:data.name})
-        //     }else{
-        //         res.status(401).json({message:"wrong credentials"})
-        //     }
-        // })
-
-
-
     }),
     order2: catchAsync(async (req, res, next) => {
         let data = await Booking.find({ userid: req.body.userid, status: "incomplete" })

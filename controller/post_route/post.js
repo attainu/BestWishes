@@ -313,7 +313,7 @@ module.exports = {
 
         
     }),
-    createOrder:async (req, res, next) => {    // leaving this for now
+    createOrder:async (req, res, next) => {   
         const auth = req.header('auth-token')
         const something = jwt.verify(auth, privatekey)
         try {

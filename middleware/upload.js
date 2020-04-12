@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
     },
    //fileFilter: fileFilter
   });
-module.exports=upload.single('avatar'),(req,res,next)=>{
+module.exports=upload.single('venueimg'),(req,res,next)=>{
     //console.log(req.file)
     req.file
     next()

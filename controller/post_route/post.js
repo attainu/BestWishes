@@ -17,34 +17,38 @@ const catchAsync = fn => {
 }
 module.exports = {
     registeruser: catchAsync(async (req, res, next) => {
-        const usersobj = new Users({ ...req.body }) // cloning the data so that no memory reference issue
-        usersobj.save((err, doc) => {
-            if (err) return next(new AppError(err, 403))
-            else {
-               // console.log(usersobj)
-                // creating token with array of Client Name and Client pass
-                token = jwt.sign({ data: [req.body.name, req.body.email] }, 'secret', { expiresIn: '1h' })
-                // sending email with nodemailer
-                transporter.sendMail({
-                    from: "js903783@gmail.com",
-                    to: req.body.email,
-                    subject: "Account activation link",
-                    html: "<h1>hello " + req.body.name + ",here is you activation link</h1><br><a href='http://localhost:7000/activateClient/" + token + ">Activate account</a>" // html body
-                }, (err, info) => {
-                    if (!err) {
-                        return res.status(200).send(
-                            {
-                                message: "registered successfully",
-                                activationLink: "http://localhost:7000/activateClient/" + token,
-                                data: doc
-                            })
-                    } else {
-                        return next(new AppError(err, 401))
-                    }
-                });
-            }
+        const userbody = { ...req.body }
+        let body_obj_length = Object.keys(userbody).length // checking the length of the body
+        if (body_obj_length == 3 || body_obj_length == 4) {
+            const usersobj = new Users(userbody) // cloning the data so that no memory reference issue
+            usersobj.save((err, doc) => {
+                if (err) return next(new AppError(err, 403))
+                else {
+                    // creating token with array of Client Name and Client pass
+                    token = jwt.sign({ data: [req.body.name, req.body.email] }, 'secret', { expiresIn: '1h' })
+                    // sending email with nodemailer
+                    transporter.sendMail({
+                        from: "js903783@gmail.com",
+                        to: req.body.email,
+                        subject: "Account activation link",
+                        html: "<h1>hello " + req.body.name + ",here is you activation link</h1><br><a href='http://localhost:7000/activateClient/" + token + ">Activate account</a>" // html body
+                    }, (err, info) => {
+                        if (!err) {
+                            return res.status(200).send(
+                                {
+                                    message: "registered successfully",
+                                    activationLink: "http://localhost:7000/activateClient/" + token,
+                                    data: doc
+                                })
+                        } else {
+                            return next(new AppError(err, 401))
+                        }
+                    });
+                }
 
-        })
+            })
+        }
+        else return next(new AppError("please fill the require field"), 401)
     }),
     forgotPass_Prrovider: catchAsync(async (req, res, next) => {
 
@@ -92,29 +96,29 @@ module.exports = {
     resetTokenClient: catchAsync(async (req, res, next) => { // reset thing for user
 
         var decoded = jwt.verify(req.params.token, privatekey);
-         await Users.findOne({ email: decoded.data })
-            const dataHash = bcrypjs.hashSync(req.body.password, 10)
-            const response = await Users.updateOne({ email: decoded.data }, { $set: { password: dataHash } })
-            if (response) {
-                return res.status(202).send("password reset succesfull")
-            }
-            else return next(new AppError("Something went wrong", 400))
-        
-    
+        await Users.findOne({ email: decoded.data })
+        const dataHash = bcrypjs.hashSync(req.body.password, 10)
+        const response = await Users.updateOne({ email: decoded.data }, { $set: { password: dataHash } })
+        if (response) {
+            return res.status(202).send("password reset succesfull")
+        }
+        else return next(new AppError("Something went wrong", 400))
+
+
 
     }),
     // reset password is happening here for provider with token varification
-    resetToken_Provider: catchAsync(async(req, res,next) => {
+    resetToken_Provider: catchAsync(async (req, res, next) => {
         var decoded = jwt.verify(req.params.token, privatekey);
-             await Providers.findOne({ email: decoded.data })
-            const dataHash = bcrypjs.hashSync(req.body.password, 10)
-            const response = await Providers.updateOne({ email: decoded.data }, { $set: { password: dataHash } })
-            if (response) {
-                return res.status(202).send("password reset succesfull")
-            }
-            else return next(new AppError("Something went wrong", 400))
-        
-    
+        await Providers.findOne({ email: decoded.data })
+        const dataHash = bcrypjs.hashSync(req.body.password, 10)
+        const response = await Providers.updateOne({ email: decoded.data }, { $set: { password: dataHash } })
+        if (response) {
+            return res.status(202).send("password reset succesfull")
+        }
+        else return next(new AppError("Something went wrong", 400))
+
+
     }),
     loginuser: catchAsync(async (req, res, next) => {
         let email = req.body.email
@@ -133,55 +137,53 @@ module.exports = {
         const validpass = await bcrypjs.compare(password, user.password)
         if (!validpass) return next(new AppError("invalid password", 403))
 
-        const token = jwt.sign({ _id: user._id }, privatekey,{expiresIn:'1h'})
+        const token = jwt.sign({ _id: user._id }, privatekey, { expiresIn: '1h' })
         user.tokens = user.tokens.concat({ token })
         await user.save()
-        return res.status(200).send({ message: "login sucess" ,token})
+        return res.status(200).send({ message: "login sucess", token })
     }),
 
     logoutuser: catchAsync(async (req, res) => {
         const id = res.payload._id
         let logoutuser = await Users.findById({ _id: id })
-        console.log(logoutuser.tokens)
         logoutuser.tokens.splice(0, logoutuser.tokens.length)
         await logoutuser.save()
         return res.status(200).send("logout sucess")
     }),
 
     registerprovider: catchAsync(async (req, res, next) => {
-        //     const providersobj = new Providers({ ...req.body })
-        //  await providersobj.save()
-        //  return res.status(200).send("provider save sucessfully")
+        const providerbody = { ...req.body }
+        const providersobj_obj_length = Object.keys(providerbody).length
+        if (providersobj_obj_length !== 3) return next(new AppError("please fill the require field", 401))
+        else {
+            const providersobj = new Providers(providerbody)
+            providersobj.save((err, doc) => {
+                if (err) return next(new AppError(err, 402))
+                else {
+                    token = jwt.sign({ data: [req.body.name, req.body.email] }, 'secret', { expiresIn: '1h' })
+                    // sending email with nodemailer
+                    transporter.sendMail({
+                        from: "js903783@gmail.com",
+                        to: req.body.email,
+                        subject: "Account activation link",
+                        html: "<h1>hello " + req.body.name + ",here is you activation link</h1><br><a href='http://localhost:7000/activate/" + token + ">Activate account</a>" // html body
+                    }, (err, info) => {
+                        if (!err) {
+                            return res.status(200).send(
+                                {
+                                    message: "registered successfully",
+                                    activationLink: "http://localhost:7000/activate/" + token,
+                                    data: doc
+                                })
+                        } else {
+                            return res.send({ message: err })
+                        }
+                    });
+                }
 
-        const providersobj = new Providers({ ...req.body })
-        providersobj.save((err, doc) => {
-            if (err) return next(new AppError(err, 402))
-            else {
-                token = jwt.sign({ data: [req.body.name, req.body.email] }, 'secret', { expiresIn: '1h' })
+            })
 
-                // sending email with nodemailer
-                transporter.sendMail({
-                    from: "js903783@gmail.com",
-                    to: req.body.email,
-                    subject: "Account activation link",
-                    html: "<h1>hello " + req.body.name + ",here is you activation link</h1><br><a href='http://localhost:7000/activate/" + token + ">Activate account</a>" // html body
-                }, (err, info) => {
-                    if (!err) {
-                        return res.status(200).send(
-                            {
-                                message: "registered successfully",
-                                activationLink: "http://localhost:7000/activate/" + token,
-                                data: doc
-                            })
-                    } else {
-                        return res.send({ message: err })
-                    }
-                });
-            }
-
-        })
-
-
+        }
 
     }),
 
@@ -202,90 +204,84 @@ module.exports = {
         const validpass = await bcrypjs.compare(password, provider.password)
         if (!validpass) return next(new AppError("invalid password", 403))
 
-        const token = jwt.sign({ _id: provider._id }, privatekey,{expiresIn:'1h'})
+        const token = jwt.sign({ _id: provider._id }, privatekey, { expiresIn: '1h' })
         provider.tokens = provider.tokens.concat({ token })
         await provider.save()
-        return res.status(200).send({ message: "login sucess",token })
+        return res.status(200).send({ message: "login sucess", token })
     }),
     logoutprovider: catchAsync(async (req, res, next) => {
         const id = res.payload._id
         let logoutuser = await Providers.findById({ _id: id })
-        console.log(logoutuser.tokens)
         logoutuser.tokens.splice(0, logoutuser.tokens.length)
         await logoutuser.save()
         return res.status(200).send("logout sucess")
     }),
-    venue: async (req, res, next) => {
+    venue: catchAsync(async (req, res, next) => {
+        const body = { ...req.body }
+        body.charges = "$" + body.charges
         const venueimg = req.file.path
-      
         const id = res.payload._id
         const a = await Providers.findById({ _id: id })
-
-        const venues = new Venues({ ...req.body, venueimg })
-        venues.validate(function(err){
-            if(err)return next(new AppError(err),404)
-        else{
-        // now wiring the venues and providers
-        venues.provider = id // in the venues schema we have provided the providers id
-        a.venue_id.push(venues._id);// in  the provider schema we have given the venues id 
-        // in the above 2 line we just have swap both id with each other for connection
-        a.save((err, doc) => {
-            if (err) {
-                return next(new AppError("there is a problem ",404))
-            }
+        if(a){
+        const venues = new Venues({ ...body, venueimg })
+        venues.validate(function (err) {
+            if (err) return next(new AppError(err), 404)
             else {
-             //   console.log("sucess")
+                venues.provider = id
+                a.venue_id.push(venues._id);
+                a.save((err, doc) => {
+                    if (err) {
+                        return next(new AppError("there is a problem ", 404))
+                    }
+                })
+                venues.save((err, doc) => {
+                    if (err) return next(new AppError("there is a problem ", 404))// console.log("error in venues", err)
+                    else res.status(200).send(doc)
+                })
             }
-        })
-        venues.save((err, doc) => {
-            if (err) return next(new AppError("there is a problem ",404))// console.log("error in venues", err)
-            else res.status(200).send(doc)
         })
     }
-    })
-    },
+    else return next(new AppError("could not find provider"))
+    }),
     provider_update_venue: catchAsync(async (req, res, next) => {
-        const  id = req.query.id
-        const book = await Booking.findOne({productId:id})
-        if(!book){
-            const providerid = res.payload._id
-            let response = await Providers.findById({ _id: providerid })
+        const id = req.params.id// venue id
+        const book = await Booking.findOne({ productId: id })
+        if (!book) { // checking for particular venue if it book or not
+            const providerid = res.payload._id // provider id
+            let response = await Providers.findById({ _id: providerid }) // checking for provider
             if (response) {
-                const {charges, capacity} = {...req.body}
-                if(charges && capacity){
+                const { charges, capacity } = { ...req.body } // require changes
+                if (charges && capacity) {
                     let charges = req.body.charges
                     let capacity = req.body.capacity
                     Venues.updateMany(
-                        { _id: id }, { $set: { capacity: capacity, charges: charges } }).then(function (doc) {
-                            return res.status(200).send({message:"update sucess"})
+                        { _id: id }, { $set: { capacity: capacity, charges:'$'+ charges } }).then(function (doc) {
+                            return res.status(200).send({ message: "update sucess" })
                         })
-                }else{return res.send({message:"all field required"})}
-            }else return next(new AppError("not found Provider", 401))
-        }else{return res.status(400).json({message:"venue still engaged"})}
+                } else { return res.send({ message: "all field required" }) }
+            } else return next(new AppError("not found Provider", 401))
+         } 
+          else  { return res.status(400).json({ message: "venue still engaged" }) }
     }),
     provider_delete_venue: catchAsync(async (req, res, next) => {
         const providerid = res.payload._id
-       // const response = await Providers.findById({ _id: providerid })
-        //console.log("entering the venues")
-        //if (response) {
-
-        const  id = req.query.id
-        const book = await Booking.find({productId:id})
-        if(!book){
-            Providers.findByIdAndUpdate(providerid, 
-            { $pull: { venue_id: {$in:[id]} } }, 
-                    function (err, doc) {
+        const id = req.params.id
+        const book = await Booking.findOne({ productId: id })
+        if (!book) {
+            Providers.findByIdAndUpdate(providerid,
+                { $pull: { venue_id: { $in: [id] } } },
+                function (err, doc) {
                     if (!err) {
-                        Venues.deleteOne({_id:id},function(err,doc){
-                            if(err)console.log(err)
-                        else res.send({message:"sucessfully"})
+                        Venues.deleteOne({ _id: id }, function (err, doc) {
+                            if (err) console.log(err)
+                            else res.send({ message: "sucessfully" })
                         })
                     } else {
                         return next(new AppError("Provider not found"))
                     }
                 })
-        }else{
-            res.status(400).json({message:"venue still engaged"})
+        } else {
+            res.status(400).json({ message: "venue still engaged" })
         }
     }),
     admin_remove_user: catchAsync(async (req, res, next) => {
@@ -293,73 +289,53 @@ module.exports = {
         const admin = await Users.findById({ _id: payload_id })
         if (admin && admin.Isadmin === true) {
             const del = req.params.id
-            const book = await Booking.findOne({userid:del})
-            if(!book){
+            const book = await Booking.findOne({ userid: del })
+            if (!book) {
                 let remove = await Users.findByIdAndDelete({ _id: del })
-                if(remove){
+                if (remove) {
                     return res.status(200).json("sucessfully remove")
-                }else return next(new AppError("could not found the User"))
-            }else return res.status(400).json({message:"user still engaged"})
-        }else return next(new AppError("only for admin", 402))
+                } else return next(new AppError("could not found the User"))
+            } else return res.status(400).json({ message: "user still engaged" })
+        } else return next(new AppError("only for admin", 402))
     }),
+
     admin_remove_provider: catchAsync(async (req, res, next) => {
+
         const payload_id = res.payload._id
         const admin = await Users.findById({ _id: payload_id })
-        if (admin && admin.Isadmin === true) {
-            const del = req.params.id
-            const book = await Venues.find({provider:del})
-            for(i in book){
-                // yahan par book[i] venue ki id hai
-                // yahan par book[i] venue ki id hai
-                // yahan par book[i] venue ki id hai
-                // yahan par book[i] venue ki id hai
-
-
-                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
-                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
-                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
-                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
-                // yahan check ho raha hai ki booking me venue ki id hai ya nahi
-                const book2 = await Booking.findOne({productId:book[i].id})
-                console.log(book2)
-                if(!book2){
-                    return res.send("found")
-
-                    // below line is regular delete function
-                //      Providers.findById({ _id: del },function(err,doc){
-                //     if(err)return next(new AppError("could not found the provider"))
-                //     else { 
-                //         doc.remove()
-                //         return res.status(200).json("sucessfully remove")
-                //     }
-                //  })
-                }else{
-                    console.log("some venues are still engaged")
-                }
-            }
-            return res.send("some venues are still engaged")
-            
-        }else return next(new AppError("only for admin", 402))
-
-        
+        if (admin && admin.Isadmin === true) { // checking there is admin or not
+            const del = req.params.id // provider id
+        let response  = await Booking.findOne({providerid:del})
+        if(!response){
+            let doc = await Providers.findById({_id:del}) // finding the provider and deleting it venues also
+            if(!doc)return next(new AppError("the provider has been already deleted"))
+            else doc.remove()
+            res.send("sucessfully remove").status(200)
+          
+        }
+        else return next(new AppError("provider has alerady booked hotel/ground"))
+             
+        }
+        else return next(new AppError("only for admin", 402))
     }),
-    createOrder:async (req, res, next) => {   
+    createOrder: async (req, res, next) => {
         const auth = req.header('auth-token')
         const something = jwt.verify(auth, privatekey)
         try {
-            const venue = await Venues.findOne({_id:req.body.venueid})
-            if(venue){
+            const venue = await Venues.findOne({ _id: req.body.venueid })
+            if (venue) {
                 const newOrder = new Booking({
-                    userid:something,
-                    productId:req.body.venueid
+                    userid: something,
+                    productId: req.body.venueid,
+                    providerid: venue.provider
                 })
                 await newOrder.save()
-                const user = await Users.findOne({_id:something})
+                const user = await Users.findOne({ _id: something })
                 user.booking.push(newOrder._id)
                 await user.save()
-                return res.status(200).json({message:"order created successfully",user:user})
-            }else{
-                res.status(400).json({message:"invalid venueid"})
+                return res.status(200).json({ message: "order created successfully", user: user })
+            } else {
+                res.status(400).json({ message: "invalid venueid" })
             }
         } catch (err) {
             res.send(err)
@@ -385,7 +361,7 @@ module.exports = {
     order2: catchAsync(async (req, res, next) => {
         let data = await Booking.find({ userid: req.body.userid, status: "incomplete" })
             .populate("productId")
-            res.send(data)
+        res.send(data)
     }),
     // routes for razorpay order creation
     chekcout: catchAsync(async (req, res, next) => {
@@ -428,25 +404,16 @@ module.exports = {
             currency
         );
         res.json({ message: "payment complete" });
-        // try {
-
-        // } catch (err) {
-        //   res.status(500).send({ statusCode: 500, message: "Server Error" });
-        // }
+    
     }),
     orderUpdate: catchAsync(async (req, res, next) => {
         console.log("order updated")
         await Booking.updateOne({ "_id": req.body.id }, { $set: { status: "complete" } })
         res.status(200).json({ message: "order updated successfully" })
-        //   .then(()=>res.status(200).json({message:"order updated successfully"}))
-        //   .catch(err=>{
-        //         res.status(400).json({"error":err})
-        //     })
+      
     }),
     search: async (req, res, next) => {
         const search = req.query.search
-        console.log(search)
-        const limit = req.query.limit
         const skip = req.query.skip
 
         const query = await Venues.find(
@@ -454,7 +421,7 @@ module.exports = {
             { $text: { $search: search } },
             { score: { $meta: "textScore" } }
 
-        ).sort({ charges: -1 }).limit(parseInt(limit)).skip(parseInt(skip))
+        ).sort({ charges: -1 }).limit(5).skip(parseInt(skip))
         console.log(query)
         console.log(query.length)
         if (query.length > 0) {

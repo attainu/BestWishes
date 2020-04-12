@@ -9,5 +9,5 @@ app.use(cors())
 app.use(express.static("static"))
 
 app.get("/",(req,res)=>{res.sendFile(__dirname+"/static/index.html")})
-
-app.listen(8080,()=>console.log("sever started"))
+const port = process.env.PORT || 8080
+app.listen(port,()=>console.log("sever started"))

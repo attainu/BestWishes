@@ -54,7 +54,6 @@ providersSchema.pre("save", function (next) { // A middleware use so that we can
             .hash(this.password, 10)
             .then((hashpassword) => {
                 this.password = hashpassword
-                console.log(this.password)
                 next()
             })
             .catch((err) => {

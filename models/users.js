@@ -54,6 +54,10 @@ const bookingSchema = new Schema({
       type:Schema.Types.ObjectId,ref:"venues",
       required:[true,"productId cannot be empty"]
   },
+  providerid:{
+    type:String,
+    required:[true,"provider id cannot be emty"]
+  },
   status:{
       type:String,
       default:"incomplete"
@@ -66,7 +70,6 @@ usersSchema.pre("save", function (next) { // A middleware use so that we can has
       .hash(this.password, 10)
       .then((hashpassword) => {
         this.password = hashpassword
-        console.log(this.password)
         next()
       })
       .catch((err) => {

@@ -422,8 +422,6 @@ module.exports = {
             { score: { $meta: "textScore" } }
 
         ).sort({ charges: -1 }).limit(5).skip(parseInt(skip))
-        console.log(query)
-        console.log(query.length)
         if (query.length > 0) {
             return res.status(401).json(query)
         }

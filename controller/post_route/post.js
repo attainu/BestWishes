@@ -31,13 +31,13 @@ module.exports = {
                         from: "js903783@gmail.com",
                         to: req.body.email,
                         subject: "Account activation link",
-                        html: "<h1>hello " + req.body.name + ",here is you activation link</h1><br><a href='http://localhost:7000/activateClient/" + token + ">Activate account</a>" // html body
+                        html: "<h1>hello " + req.body.name + ",here is you activation link</h1><br><a href='https://mongo-bestwishes.herokuapp.com/activateClient/" + token + ">Activate account</a>" // html body
                     }, (err, info) => {
                         if (!err) {
                             return res.status(200).send(
                                 {
                                     message: "registered successfully",
-                                    activationLink: "http://localhost:7000/activateClient/" + token,
+                                    activationLink: "https://mongo-bestwishes.herokuapp.com/activateClient/" + token,
                                     data: doc
                                 })
                         } else {
@@ -62,11 +62,11 @@ module.exports = {
                 to: req.body.email,
                 subject: "Password reset link",
                 html: "<h1>Click the link to reset you password</h><br>" +
-                    "<a href='http://localhost:7000/resetClient/" + token + ">Click here</a>"
+                    "<a href='https://mongo-bestwishes.herokuapp.com/resetClient/" + token + ">Click here</a>"
             })
             res.send({
                 message: "reset link sent to your email",
-                link: "http://localhost:7000/reset/" + token + ">Click here</a>"
+                link: "https://mongo-bestwishes.herokuapp.com/reset/" + token + ">Click here</a>"
             })
         }
         return next(new AppError("The email id enter is invalid", 404))
@@ -83,11 +83,11 @@ module.exports = {
                 to: req.body.email,
                 subject: "Password reset link",
                 html: "<h1>Click the link to reset you password</h><br>" +
-                    "<a href='http://localhost:7000/resetClient/" + token + ">Click here</a>"
+                    "<a href='https://mongo-bestwishes.herokuapp.com/resetClient/" + token + ">Click here</a>"
             })
             res.send({
                 message: "reset link sent to your email",
-                link: "http://localhost:7000/resetClient/" + token + ">Click here</a>"
+                link: "https://mongo-bestwishes.herokuapp.com/resetClient/" + token + ">Click here</a>"
             })
         }
         return next(new AppError("The email id enter is invalid", 404))
@@ -166,13 +166,13 @@ module.exports = {
                         from: "js903783@gmail.com",
                         to: req.body.email,
                         subject: "Account activation link",
-                        html: "<h1>hello " + req.body.name + ",here is you activation link</h1><br><a href='http://localhost:7000/activate/" + token + ">Activate account</a>" // html body
+                        html: "<h1>hello " + req.body.name + ",here is you activation link</h1><br><a href='https://mongo-bestwishes.herokuapp.com/activate/" + token + ">Activate account</a>" // html body
                     }, (err, info) => {
                         if (!err) {
                             return res.status(200).send(
                                 {
                                     message: "registered successfully",
-                                    activationLink: "http://localhost:7000/activate/" + token,
+                                    activationLink: "https://mongo-bestwishes.herokuapp.com/activate/" + token,
                                     data: doc
                                 })
                         } else {
